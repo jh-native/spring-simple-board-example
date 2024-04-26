@@ -1,11 +1,14 @@
 package com.example.simpleboard.post.db;
 
+import com.example.simpleboard.board.db.BoardEntity;
 import com.example.simpleboard.reply.db.ReplyEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLOrder;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 
 @Getter
@@ -21,8 +24,15 @@ public class PostEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long boardId;
+    // N:1 관계 설정
+    @ManyToOne
+    @JsonIgnore
+    @ToString.Exclude
+    private BoardEntity board;
+
     private String userName;
+
+    @JsonIgnore
     private String password;
     private String email;
     private String status;
@@ -34,6 +44,11 @@ public class PostEntity {
     private LocalDateTime postedAt;
 
     // ~Entity.java 파일은 모드 DB Table Column으로 인식함 -> 예외처리
-    @Transient
+    @OneToMany(
+            mappedBy = "post"
+    )
+    @Builder.Default
+    @SQLRestriction("status = 'REGISTERED'")
+    @SQLOrder(value = "id desc")
     private List<ReplyEntity> replyList = List.of();
 }
